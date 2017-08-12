@@ -49,44 +49,6 @@ class TimelineTableViewController: UITableViewController {
         return cell
     }
     
-    /*
-    
-    @IBAction func AddButtonPressed(_ sender: Any) {
-        let actionSheet = UIAlertController(title: nil, message: "메모하세요", preferredStyle: .alert)
-        actionSheet.view.tintColor = UIColor.darkGray
-        
-        let addAction = UIAlertAction(title: "", style: .default, handler: {
-            (action : UIAlertAction!) -> Void in
-            
-        })
-        let image = UIImage(named: "add_2x.png")
-        addAction.setValue(image, forKey: "image")
-        
-        let saveAction = UIAlertAction(title: "Save", style: .default, handler: {
-            alert -> Void in
-            
-            let firstTextField = actionSheet.textFields![0] as UITextField
-            
-            print("firstName \(firstTextField.text)")
-        })
-        
-        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: {
-            (action : UIAlertAction!) -> Void in
-            
-        })
 
-        
-        actionSheet.addTextField { (textField : UITextField!) -> Void in
-            textField.placeholder = "하고 싶은 말이 있나요"
-        }
-    
-        actionSheet.addAction(addAction)
-        actionSheet.addAction(saveAction)
-        actionSheet.addAction(cancelAction)
-
-        self.present(actionSheet, animated: true, completion: nil)
-    }
-*/
-    
 
 }

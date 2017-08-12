@@ -12,9 +12,9 @@ class TimelineTableViewCell: UITableViewCell {
 
     @IBOutlet weak var TextLabel: UILabel!
     
-    override func awakeFromNib() {
+    override func awakeFromNib(){
         super.awakeFromNib()
-        // Initialization code
+        // Initialization codey
     }
 
     override func setSelected(_ selected: Bool, animated: Bool) {

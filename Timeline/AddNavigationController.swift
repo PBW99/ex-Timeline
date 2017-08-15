@@ -11,7 +11,7 @@ import Fusuma
 
 class AddNavigationController: UINavigationController, FusumaDelegate {
     let fusuma = FusumaViewController()
-    var uploadController = UIViewController()
+    var uploadController = UploadViewController()
     let storyBoard = UIStoryboard(name: "Main", bundle: nil)
     
     
@@ -27,13 +27,12 @@ class AddNavigationController: UINavigationController, FusumaDelegate {
         fusuma.cropHeightRatio = 0.6 // Height-to-width ratio. The default value is 1, which means a squared-size photo.
         fusuma.allowMultipleSelection = false // You can select multiple photos from the camera roll. The default value is false.
         fusuma.defaultMode = .library // The first choice to show (.camera, .library, .video). The default value is .camera.
+        fusuma.hidesBottomBarWhenPushed = true
         
-        uploadController = storyBoard.instantiateViewController(withIdentifier: "UploadViewController")
+        uploadController = storyBoard.instantiateViewController(withIdentifier: "UploadViewController") as! UploadViewController
         uploadController.navigationItem.title = "업로드"
-        
-        self.tabBarController?
-        self.setViewControllers([fusuma,uploadController], animated: true)
-
+        fusuma.hidesBottomBarWhenPushed = true
+        self.pushViewController(fusuma, animated: false)
     }
     override func viewWillAppear(_ animated: Bool) {
         self.isNavigationBarHidden = true
@@ -45,6 +44,7 @@ class AddNavigationController: UINavigationController, FusumaDelegate {
     }
     // Return the image which is selected from camera roll or is taken via the camera.
     func fusumaImageSelected(_ image: UIImage, source: FusumaMode) {
+        uploadController.image = image
         self.pushViewController(uploadController, animated: true)
     }
     
@@ -70,7 +70,5 @@ class AddNavigationController: UINavigationController, FusumaDelegate {
     // Return an image and the detailed information.
     func fusumaImageSelected(_ image: UIImage, source: FusumaMode, metaData: ImageMetadata) {
     }
-    
-    
     
 }

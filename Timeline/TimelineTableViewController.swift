@@ -19,6 +19,7 @@ class TimelineTableViewController: UITableViewController {
     var posts = [Post]()
     var loadedPosts = [Post]()
     
+    @IBOutlet weak var FooterLabel: UILabel!
     
     
     override func viewDidLoad() {
@@ -31,6 +32,9 @@ class TimelineTableViewController: UITableViewController {
         refreshControl = UIRefreshControl()
         refreshControl?.attributedTitle = NSAttributedString(string: "Pull to refresh")
         refreshControl?.addTarget(self, action: Selector("refresh"), for: UIControlEvents.valueChanged)
+        
+        //        self.FooterLabel.isHidden = true
+        
         
     }
     
@@ -64,7 +68,6 @@ class TimelineTableViewController: UITableViewController {
     }
     
     func loadPosts(){
-        //TODO: detach data search to just function
         
         orderdQuery = ref?.child("posts").queryOrdered(byChild: "date")
         
@@ -76,10 +79,7 @@ class TimelineTableViewController: UITableViewController {
             for anyDatum in snapshotData{
                 let snapshotDatum = anyDatum as! DataSnapshot
                 let dicDatum = snapshotDatum.value as! [String:String]
-                var post = Post()
-                post.text = dicDatum["text"]!
-                post.date = Int(dicDatum["date"]!)!
-                post.imageURL = dicDatum["imageURL"]!
+                var post = Post(dicDatum["text"]!, Int(dicDatum["date"]!)!, dicDatum["imageURL"]!)
                 
                 //Get Image from URL
                 let image_url = post.imageURL
@@ -102,66 +102,68 @@ class TimelineTableViewController: UITableViewController {
             self.posts += self.loadedPosts.prefix(g_NumPerOneLoad)
             self.tableView.reloadData()
             
-            /*
-             if let data = snapshot.value as? [String:AnyObject]{
-             var dataValues = [AnyObject](data.values)
-             dataValues.reverse()
-             print(dataValues[0..<3])
-             var threePosts = [Post]()
-             for datum in dataValues{
-             let dicDatum = datum as! [String:String]
-             var post = Post()
-             post.text = dicDatum["text"]!
-             post.date = Int(dicDatum["date"]!)!
-             post.imageURL = dicDatum["imageURL"]!
-             threePosts += [post]
-             }
-             threePosts.sort(by: {$0.date > $1.date})
-             self.posts.append(contentsOf: threePosts)
-             self.tableView.reloadData()
-             
-             }
-             */
+        })
+    }
+    
+    func loadFreshPosts(){
+        let filteredQuery = ref?.child("posts").queryOrdered(byChild: "date").queryStarting(atValue: "\((self.posts.first?.date)! + 1)")
+        
+        filteredQuery?.observeSingleEvent(of: .value, with: { (snapshot) in
+            //Take the value from the snapshot and added it to the jokbosData array
+            var snapshotData = snapshot.children.allObjects
+            snapshotData = snapshotData.reversed()
+            
+            var freshPostsChunk = [Post]()
+            
+            for anyDatum in snapshotData{
+                let snapshotDatum = anyDatum as! DataSnapshot
+                let dicDatum = snapshotDatum.value as! [String:String]
+                if let text = dicDatum["text"],
+                    let date = Int(dicDatum["date"]!),
+                    let imageURL = dicDatum["imageURL"]{
+                    var post = Post(text,date,imageURL)
+                    
+                    //Get Image from URL
+                    let image_url = post.imageURL
+                    if var url = URL(string: image_url){
+                        var request = URLRequest(url:url)
+                        
+                        URLSession.shared.dataTask(with: request, completionHandler: { (data, response, error) in
+                            DispatchQueue.main.async {
+                                post.image = UIImage(data: data!)
+                                self.tableView.reloadData()
+                            }
+                            if(error != nil){
+                                print(error)
+                            }
+                        }).resume()
+                    }
+                    freshPostsChunk += [post]
+                }
+            }
+            
+            self.loadedPosts.insert(contentsOf: freshPostsChunk, at: 0)
+            self.posts.insert(contentsOf: freshPostsChunk, at: 0)
+            self.tableView.reloadData()
             
         })
         
-        /*
-         if var limitedQuery = orderdQuery?.queryLimited(toLast: 3){
-         limitedQuery.observeSingleEvent(of: .value, with: { (snapshot) in
-         //Take the value from the snapshot and added it to the jokbosData array
-         if let data = snapshot.value as? [String:AnyObject]{
-         var dataValues = [AnyObject](data.values)
-         var threePosts = [Post]()
-         for datum in dataValues{
-         let dicDatum = datum as! [String:String]
-         var post = Post()
-         post.text = dicDatum["text"]!
-         post.date = Int(dicDatum["date"]!)!
-         post.imageURL = dicDatum["imageURL"]!
-         threePosts += [post]
-         }
-         threePosts.sort(by: {$0.date > $1.date})
-         self.posts.append(contentsOf: threePosts)
-         self.tableView.reloadData()
-         
-         }
-         
-         })
-         }
-         
-         */
-        
     }
-    
     func loadPastPosts(){
         let pastPosts = self.loadedPosts.filter{$0.date < (self.posts.last?.date)!}
         let pastChunkPosts = pastPosts.prefix(g_NumPerOneLoad)
-        self.posts += pastChunkPosts
-        self.tableView.reloadData()
+        if pastChunkPosts.count > 0{
+            self.posts += pastChunkPosts
+            sleep(1)
+            self.tableView.reloadData()
+        }
+        self.FooterLabel.isHidden = true
+        
     }
     
     func refresh(){
         print("refresh")
+        self.loadFreshPosts()
         self.refreshControl?.endRefreshing()
     }
     override func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -170,8 +172,9 @@ class TimelineTableViewController: UITableViewController {
         let distanceFromBottom = scrollView.contentSize.height - contentYoffset
         if distanceFromBottom < height {
             print(" you reached end of the table")
+            self.FooterLabel.isHidden = false
+            //            scrollView.contentOffset.y = scrollView.contentOffset.y + self.FooterLabel.frame.height
             loadPastPosts()
         }
     }
-    
 }

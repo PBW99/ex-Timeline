@@ -12,8 +12,14 @@ import UIKit
 let g_NumPerOneLoad = 3
 
 class Post {
-    var text:String = ""
-    var date:Int = 0 
-    var imageURL:String = ""
+    var text:String
+    var date:Int
+    var imageURL:String
     var image:UIImage?
+    
+    init(_ text:String, _ date:Int, _ imageURL:String) {
+        self.text = text
+        self.date = date
+        self.imageURL = imageURL
+    }
 }

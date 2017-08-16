@@ -17,47 +17,67 @@ class UploadViewController: UIViewController, UITextViewDelegate {
     
     @IBOutlet weak var ImageView: UIImageView!
     @IBOutlet weak var TextView: UITextView!
+    
     var image = UIImage()
+    let placeHolder = "하고 싶은 말이 있나요?"
     
     var ref: DatabaseReference?
     
-    
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.TextView.delegate = self
         ref = Database.database().reference()
+        
+        self.TextView.delegate = self
+        textViewDidEndEditing(TextView)
+        var tapDismiss = UITapGestureRecognizer(target:self,action:"dismissKeyboard")
+        self.view.addGestureRecognizer(tapDismiss)
         
         let addButton = UIBarButtonItem(barButtonSystemItem: .add, target: self, action:#selector(uploadPost))
         self.navigationItem.rightBarButtonItem = addButton
-        
     }
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
     }
+    
+    //MARK: - TextView PlaceHolder
+    func dismissKeyboard(){
+        TextView.resignFirstResponder()
+    }
+    func textViewDidEndEditing(_ textView: UITextView) {
+        if(textView.text == ""){
+            textView.text = placeHolder
+            textView.textColor = UIColor.lightGray
+        }
+        textView.resignFirstResponder()
+    }
+    
+    func textViewDidBeginEditing(_ textView: UITextView) {
+        if(textView.text == placeHolder){
+            textView.text = ""
+            textView.textColor = UIColor.black
+        }
+        textView.becomeFirstResponder()
+    }
+    override func viewDidAppear(_ animated: Bool) {
+        self.TextView.isEditable = true
+    }
+    override func viewDidDisappear(_ animated: Bool) {
+        self.TextView.isEditable = false
+    }
+    
+    //MARK: - ImageView
     override func viewWillAppear(_ animated: Bool) {
         self.navigationController?.isNavigationBarHidden = false
-        
-        self.TextView.textColor = UIColor.lightGray
-        self.TextView.text = "하고 싶은 말이 있나요?"
-        
         self.ImageView.image = image
     }
-    
     override func viewWillDisappear(_ animated: Bool) {
-        print(self.ImageView)
         self.navigationController?.isNavigationBarHidden = true
+
     }
-    func textViewDidBeginEditing(_ textView: UITextView) {
-        print("begin")
-        textView.textColor = UIColor.black
-        textView.text = ""
-    }
-    
     @objc func uploadPost(){
         var curRef = self.ref?.child("posts").childByAutoId()
-        if self.TextView.text != "하고 싶은 말이 있나요?"{
+        if self.TextView.text != placeHolder{
             curRef?.child("text").setValue(self.TextView.text)
         }else{
             curRef?.child("text").setValue("")
@@ -70,6 +90,7 @@ class UploadViewController: UIViewController, UITextViewDelegate {
         var storageRef:StorageReference
         
         storageRef = Storage.storage().reference().child((curRef?.key)!+".jpg")
+        
         guard var uploadData = UIImageJPEGRepresentation(self.image, 0.1) else{
             guard var uploadData = UIImagePNGRepresentation(self.image) else{
                 return
@@ -78,9 +99,9 @@ class UploadViewController: UIViewController, UITextViewDelegate {
         }
         storageRef.putData(uploadData, metadata: nil, completion:{ metadata, error in
             if let error = error {
-                // Uh-oh, an error occurred!
+                // 에러 발생
             } else {
-                // Metadata contains file metadata such as size, content-type, and download URL.
+                // Metadata는 size, content-type, download URL과 같은 컨텐트의 메타데이터를 가진다
                 if let downloadURL = metadata!.downloadURL(){
                     curRef?.child("imageURL").setValue("\(downloadURL)")
                 }
@@ -88,15 +109,5 @@ class UploadViewController: UIViewController, UITextViewDelegate {
         })
         self.tabBarController?.selectedIndex = 0
     }
-    
-    /*
-     // MARK: - Navigation
-     
-     // In a storyboard-based application, you will often want to do a little preparation before navigation
-     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-     // Get the new view controller using segue.destinationViewController.
-     // Pass the selected object to the new view controller.
-     }
-     */
     
 }

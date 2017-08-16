@@ -14,8 +14,6 @@ class AddNavigationController: UINavigationController, FusumaDelegate {
     var uploadController = UploadViewController()
     let storyBoard = UIStoryboard(name: "Main", bundle: nil)
     
-    
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         fusumaTintColor = UIColor.black
@@ -23,15 +21,16 @@ class AddNavigationController: UINavigationController, FusumaDelegate {
         fusumaBackgroundColor = UIColor.white
         
         fusuma.delegate = self
-        fusuma.hasVideo = false // If you want to let the users allow to use video.
-        fusuma.cropHeightRatio = 0.6 // Height-to-width ratio. The default value is 1, which means a squared-size photo.
-        fusuma.allowMultipleSelection = false // You can select multiple photos from the camera roll. The default value is false.
-        fusuma.defaultMode = .library // The first choice to show (.camera, .library, .video). The default value is .camera.
+        fusuma.hasVideo = false
+        fusuma.cropHeightRatio = 0.6 // Height-to-width ratio. 
+        fusuma.allowMultipleSelection = false
+        fusuma.defaultMode = .library
+        
         fusuma.hidesBottomBarWhenPushed = true
         
         uploadController = storyBoard.instantiateViewController(withIdentifier: "UploadViewController") as! UploadViewController
         uploadController.navigationItem.title = "업로드"
-        fusuma.hidesBottomBarWhenPushed = true
+        
         self.pushViewController(fusuma, animated: false)
     }
     override func viewWillAppear(_ animated: Bool) {
@@ -40,14 +39,11 @@ class AddNavigationController: UINavigationController, FusumaDelegate {
     }
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
     }
-    // Return the image which is selected from camera roll or is taken via the camera.
     func fusumaImageSelected(_ image: UIImage, source: FusumaMode) {
         uploadController.image = image
         self.pushViewController(uploadController, animated: true)
     }
-    
     func fusumaWillClosed() {
         self.tabBarController?.selectedIndex = 0
     }

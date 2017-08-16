@@ -72,7 +72,7 @@
             <objects>
                 <navigationController id="h4O-Nu-xTC" customClass="AddNavigationController" customModule="Timeline" customModuleProvider="target" sceneMemberID="viewController">
                     <tabBarItem key="tabBarItem" title="" image="quickaction_icon_add_2x" selectedImage="quickaction_icon_add_2x" id="veb-Ir-1wP"/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="cX8-SI-EsU">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" translucent="NO" id="cX8-SI-EsU">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
@@ -84,7 +84,7 @@
         <!--UploadViewController-->
         <scene sceneID="ABr-Zb-m5F">
             <objects>
-                <viewController storyboardIdentifier="UploadViewController" title="UploadViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="2Eu-D5-hGw" customClass="UploadViewController" customModule="Timeline" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="UploadViewController" title="UploadViewController" id="2Eu-D5-hGw" customClass="UploadViewController" customModule="Timeline" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="3hg-SC-8nn"/>
                         <viewControllerLayoutGuide type="bottom" id="rej-Gs-wta"/>
@@ -145,15 +145,11 @@
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="kro-1M-0mL" sceneMemberID="viewController">
                     <tabBarItem key="tabBarItem" image="quickaction_icon_home_2x" selectedImage="quickaction_icon_home_2x" id="yWF-nz-d1T"/>
                     <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" translucent="NO" id="zh6-OS-tTT">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" misplaced="YES" translucent="NO" id="zh6-OS-tTT">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <nil name="viewControllers"/>
-                    <toolbar key="toolbar" opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" id="6Th-s3-6og">
-                        <rect key="frame" x="0.0" y="692" width="414" height="44"/>
-                        <autoresizingMask key="autoresizingMask"/>
-                    </toolbar>
                     <connections>
                         <segue destination="TLA-r6-vIr" kind="relationship" relationship="rootViewController" id="Ouz-6i-Hzp"/>
                     </connections>
@@ -167,5 +163,4 @@
         <image name="quickaction_icon_add_2x" width="28" height="27"/>
         <image name="quickaction_icon_home_2x" width="28" height="27"/>
     </resources>
-    <color key="tintColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
 </document>

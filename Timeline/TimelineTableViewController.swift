@@ -12,49 +12,36 @@ import FirebaseStorage
 
 class TimelineTableViewController: UITableViewController {
     
-    var ref:DatabaseReference?
-    var databaseHandle:DatabaseHandle?
-    var orderdQuery:DatabaseQuery?
+    var ref:DatabaseReference?          //Firebase Database 루트를 가리키는 레퍼런스
     
-    var posts = [Post]()
-    var loadedPosts = [Post]()
+    var posts = [Post]()                //테이블 뷰에 표시될 포스트들을 담는 배열
+    var loadedPosts = [Post]()          //Firebase에서 로드된 포스트들
     
-    @IBOutlet weak var FooterLabel: UILabel!
-    
+    @IBOutlet weak var FooterLabel: UILabel!    //loading..메세지를 표시할 라벨
     
     override func viewDidLoad() {
         super.viewDidLoad()
         ref = Database.database().reference()
         
-        loadPosts()
+        loadPosts()     //Firebase에서 포스트들을 불러들임
         
-        
-        refreshControl = UIRefreshControl()
+        refreshControl = UIRefreshControl()         //최신글을 불러 들이기 위한 refreshControl
         refreshControl?.attributedTitle = NSAttributedString(string: "Pull to refresh")
-        refreshControl?.addTarget(self, action: Selector("refresh"), for: UIControlEvents.valueChanged)
-        
-        //        self.FooterLabel.isHidden = true
-        
-        
+        refreshControl?.addTarget(self, action: #selector(TimelineTableViewController.refresh), for: UIControlEvents.valueChanged)
     }
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
     }
     
     // MARK: - Table view data source
     
     override func numberOfSections(in tableView: UITableView) -> Int {
-        // #warning Incomplete implementation, return the number of sections
         return 1
     }
-    
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        // #warning Incomplete implementation, return the number of rows
         return self.posts.count
     }
-    
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "TimelineCell", for: indexPath) as! TimelineTableViewCell
@@ -67,49 +54,57 @@ class TimelineTableViewController: UITableViewController {
         return cell
     }
     
+    // MARK: -  Load posts
     func loadPosts(){
+        var orderedQuery:DatabaseQuery?
+        orderedQuery = ref?.child("posts").queryOrdered(byChild: "date")
         
-        orderdQuery = ref?.child("posts").queryOrdered(byChild: "date")
-        
-        orderdQuery?.observeSingleEvent(of: .value, with: { (snapshot) in
-            //Take the value from the snapshot and added it to the jokbosData array
+        orderedQuery?.observeSingleEvent(of: .value, with: { (snapshot) in
+
             var snapshotData = snapshot.children.allObjects
             snapshotData = snapshotData.reversed()
             
             for anyDatum in snapshotData{
                 let snapshotDatum = anyDatum as! DataSnapshot
                 let dicDatum = snapshotDatum.value as! [String:String]
-                var post = Post(dicDatum["text"]!, Int(dicDatum["date"]!)!, dicDatum["imageURL"]!)
-                
-                //Get Image from URL
-                let image_url = post.imageURL
-                if var url = URL(string: image_url){
-                    var request = URLRequest(url:url)
+                if let text = dicDatum["text"],
+                    let date = Int(dicDatum["date"]!),
+                    let imageURL = dicDatum["imageURL"]{
+                    let post = Post(text,date,imageURL)
                     
-                    URLSession.shared.dataTask(with: request, completionHandler: { (data, response, error) in
-                        DispatchQueue.main.async {
-                            post.image = UIImage(data: data!)
-                            self.tableView.reloadData()
-                        }
-                        if(error != nil){
-                            print(error)
-                        }
-                    }).resume()
+                    //Get Image from URL
+                    let image_url = post.imageURL
+                    if let url = URL(string: image_url){
+                        let request = URLRequest(url:url)
+                        
+                        URLSession.shared.dataTask(with: request, completionHandler: { (data, response, error) in
+                            DispatchQueue.main.async {
+                                post.image = UIImage(data: data!)
+                                self.tableView.reloadData()
+                            }
+                            if(error != nil){
+                                print(error)
+                            }
+                        }).resume()
+                    }
+                    self.loadedPosts += [post]
                 }
-                self.loadedPosts += [post]
             }
             
             self.posts += self.loadedPosts.prefix(g_NumPerOneLoad)
             self.tableView.reloadData()
-            
         })
     }
     
     func loadFreshPosts(){
-        let filteredQuery = ref?.child("posts").queryOrdered(byChild: "date").queryStarting(atValue: "\((self.posts.first?.date)! + 1)")
+        var filteredQuery:DatabaseQuery?
+        if let latestDate = self.posts.first?.date{
+            filteredQuery = ref?.child("posts").queryOrdered(byChild: "date").queryStarting(atValue: "\(latestDate + 1)")
+        }else{
+            filteredQuery = ref?.child("posts").queryOrdered(byChild: "date").queryStarting(atValue: "\(0)")
+        }
         
         filteredQuery?.observeSingleEvent(of: .value, with: { (snapshot) in
-            //Take the value from the snapshot and added it to the jokbosData array
             var snapshotData = snapshot.children.allObjects
             snapshotData = snapshotData.reversed()
             
@@ -121,12 +116,12 @@ class TimelineTableViewController: UITableViewController {
                 if let text = dicDatum["text"],
                     let date = Int(dicDatum["date"]!),
                     let imageURL = dicDatum["imageURL"]{
-                    var post = Post(text,date,imageURL)
+                    let post = Post(text,date,imageURL)
                     
                     //Get Image from URL
                     let image_url = post.imageURL
-                    if var url = URL(string: image_url){
-                        var request = URLRequest(url:url)
+                    if let url = URL(string: image_url){
+                        let request = URLRequest(url:url)
                         
                         URLSession.shared.dataTask(with: request, completionHandler: { (data, response, error) in
                             DispatchQueue.main.async {
@@ -139,33 +134,35 @@ class TimelineTableViewController: UITableViewController {
                         }).resume()
                     }
                     freshPostsChunk += [post]
+                    if freshPostsChunk.count >= g_NumPerOneLoad{
+                        break
+                    }
                 }
             }
-            
             self.loadedPosts.insert(contentsOf: freshPostsChunk, at: 0)
             self.posts.insert(contentsOf: freshPostsChunk, at: 0)
             self.tableView.reloadData()
-            
         })
-        
     }
     func loadPastPosts(){
         let pastPosts = self.loadedPosts.filter{$0.date < (self.posts.last?.date)!}
         let pastChunkPosts = pastPosts.prefix(g_NumPerOneLoad)
+        
         if pastChunkPosts.count > 0{
             self.posts += pastChunkPosts
             sleep(1)
             self.tableView.reloadData()
         }
         self.FooterLabel.isHidden = true
-        
     }
     
+    // MARK: - Reload Posts
     func refresh(){
         print("refresh")
         self.loadFreshPosts()
         self.refreshControl?.endRefreshing()
     }
+    
     override func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let  height = scrollView.frame.size.height
         let contentYoffset = scrollView.contentOffset.y
@@ -173,7 +170,6 @@ class TimelineTableViewController: UITableViewController {
         if distanceFromBottom < height {
             print(" you reached end of the table")
             self.FooterLabel.isHidden = false
-            //            scrollView.contentOffset.y = scrollView.contentOffset.y + self.FooterLabel.frame.height
             loadPastPosts()
         }
     }

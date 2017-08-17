@@ -8,10 +8,13 @@
 
 import UIKit
 import FirebaseDatabase
+import FirebaseStorage
+import FirebaseStorageUI
 
 class TimelineTableViewController: UITableViewController {
     
     var ref:DatabaseReference?          //Firebase Database 루트를 가리키는 레퍼런스
+    var storageRef:StorageReference?
     
     var posts = [Post]()                //테이블 뷰에 표시될 포스트들을 담는 배열
     var loadedPosts = [Post]()          //Firebase에서 로드된 포스트들
@@ -21,6 +24,7 @@ class TimelineTableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         ref = Database.database().reference()
+        storageRef = Storage.storage().reference()
         
         loadPosts()     //Firebase에서 포스트들을 불러들임
         
@@ -72,6 +76,13 @@ class TimelineTableViewController: UITableViewController {
                     let post = Post(text,date,imageURL)
                     
                     //Get Image from URL
+                    let imageRef = self.storageRef?.child("\(snapshotDatum.key).jpg")
+                    let imageView = UIImageView()
+                    imageView.sd_setImage(with: imageRef!, placeholderImage: UIImage())
+                    post.image = imageView.image
+                    
+                    
+                    /*
                     let image_url = post.imageURL
                     if let url = URL(string: image_url){
                         let request = URLRequest(url:url)
@@ -86,6 +97,7 @@ class TimelineTableViewController: UITableViewController {
                             }
                         }).resume()
                     }
+ */
                     self.loadedPosts += [post]
                 }
             }

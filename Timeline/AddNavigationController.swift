@@ -10,9 +10,9 @@ import UIKit
 import Fusuma
 
 class AddNavigationController: UINavigationController, FusumaDelegate {
-    let fusuma = FusumaViewController()
-    var uploadController = UploadViewController()
-    let storyBoard = UIStoryboard(name: "Main", bundle: nil)
+    let fusuma = FusumaViewController() //이미지 선택을 위한 Fusuma컨트롤러
+    var uploadController = UploadViewController() //텍스트 입력, 게시글 업로드를 위한 컨트롤러
+    let storyBoard = UIStoryboard(name: "Main", bundle: nil) //Main.storyboard를 가리킴
     
     override func viewDidLoad() {
         super.viewDidLoad()

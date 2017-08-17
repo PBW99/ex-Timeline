@@ -7,11 +7,8 @@
 //
 
 import UIKit
-import FirebaseCore
-import Firebase
 import FirebaseDatabase
 import FirebaseStorage
-
 
 class UploadViewController: UIViewController, UITextViewDelegate {
     

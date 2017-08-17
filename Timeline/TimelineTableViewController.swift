@@ -13,7 +13,7 @@ import FirebaseStorageUI
 
 class TimelineTableViewController: UITableViewController {
     
-    var ref:DatabaseReference?          //Firebase Database 루트를 가리키는 레퍼런스
+    var ref:DatabaseReference?
     var storageRef:StorageReference?
     
     var posts = [Post]()                //테이블 뷰에 표시될 포스트들을 담는 배열
@@ -23,8 +23,8 @@ class TimelineTableViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        ref = Database.database().reference()
-        storageRef = Storage.storage().reference()
+        ref = Database.database().reference()    //Firebase Database 루트를 가리키는 레퍼런스
+        storageRef = Storage.storage().reference()    //Firebase Storage 루트를 가리키는 레퍼런스
         
         loadPosts()     //Firebase에서 포스트들을 불러들임
         
@@ -32,16 +32,15 @@ class TimelineTableViewController: UITableViewController {
         refreshControl?.attributedTitle = NSAttributedString(string: "Pull to refresh")
         refreshControl?.addTarget(self, action: #selector(TimelineTableViewController.refresh), for: UIControlEvents.valueChanged)
     }
-    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
     }
     
     // MARK: - Table view data source
-    
     override func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
+    
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return self.posts.count
     }
@@ -50,9 +49,7 @@ class TimelineTableViewController: UITableViewController {
         let cell = tableView.dequeueReusableCell(withIdentifier: "TimelineCell", for: indexPath) as! TimelineTableViewCell
         let post = posts[indexPath.row]
         cell.TextLabel.text = post.text
-        if let image = post.image {
-            cell.ImageView.image = image
-        }
+        cell.ImageView.image = post.imageView.image
         
         return cell
     }
@@ -71,33 +68,13 @@ class TimelineTableViewController: UITableViewController {
                 let snapshotDatum = anyDatum as! DataSnapshot
                 let dicDatum = snapshotDatum.value as! [String:String]
                 if let text = dicDatum["text"],
-                    let date = Int(dicDatum["date"]!),
-                    let imageURL = dicDatum["imageURL"]{
-                    let post = Post(text,date,imageURL)
+                    let date = Int(dicDatum["date"]!){
+                    let post = Post(text,date)
                     
-                    //Get Image from URL
+                    //Get Image
                     let imageRef = self.storageRef?.child("\(snapshotDatum.key).jpg")
-                    let imageView = UIImageView()
-                    imageView.sd_setImage(with: imageRef!, placeholderImage: UIImage())
-                    post.image = imageView.image
+                    post.imageView.sd_setImage(with: imageRef!, placeholderImage: UIImage())
                     
-                    
-                    /*
-                    let image_url = post.imageURL
-                    if let url = URL(string: image_url){
-                        let request = URLRequest(url:url)
-                        
-                        URLSession.shared.dataTask(with: request, completionHandler: { (data, response, error) in
-                            DispatchQueue.main.async {
-                                post.image = UIImage(data: data!)
-                                self.tableView.reloadData()
-                            }
-                            if(error != nil){
-                                print(error)
-                            }
-                        }).resume()
-                    }
- */
                     self.loadedPosts += [post]
                 }
             }
@@ -125,25 +102,13 @@ class TimelineTableViewController: UITableViewController {
                 let snapshotDatum = anyDatum as! DataSnapshot
                 let dicDatum = snapshotDatum.value as! [String:String]
                 if let text = dicDatum["text"],
-                    let date = Int(dicDatum["date"]!),
-                    let imageURL = dicDatum["imageURL"]{
-                    let post = Post(text,date,imageURL)
+                    let date = Int(dicDatum["date"]!){
+                    let post = Post(text,date)
                     
                     //Get Image from URL
-                    let image_url = post.imageURL
-                    if let url = URL(string: image_url){
-                        let request = URLRequest(url:url)
-                        
-                        URLSession.shared.dataTask(with: request, completionHandler: { (data, response, error) in
-                            DispatchQueue.main.async {
-                                post.image = UIImage(data: data!)
-                                self.tableView.reloadData()
-                            }
-                            if(error != nil){
-                                print(error)
-                            }
-                        }).resume()
-                    }
+                    let imageRef = self.storageRef?.child("\(snapshotDatum.key).jpg")
+                    post.imageView.sd_setImage(with: imageRef!, placeholderImage: UIImage())
+                    
                     freshPostsChunk += [post]
                     if freshPostsChunk.count >= g_NumPerOneLoad{
                         break
@@ -164,7 +129,6 @@ class TimelineTableViewController: UITableViewController {
             sleep(1)
             self.tableView.reloadData()
         }
-        self.FooterLabel.isHidden = true
     }
     
     // MARK: - Reload Posts
@@ -177,10 +141,9 @@ class TimelineTableViewController: UITableViewController {
     override func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let  height = scrollView.frame.size.height
         let contentYoffset = scrollView.contentOffset.y
-        let distanceFromBottom = scrollView.contentSize.height - contentYoffset
+        let distanceFromBottom = scrollView.contentSize.height + self.FooterLabel.frame.height - contentYoffset
         if distanceFromBottom < height {
             print(" you reached end of the table")
-            self.FooterLabel.isHidden = false
             loadPastPosts()
         }
     }

@@ -14,12 +14,10 @@ let g_NumPerOneLoad = 3
 class Post {
     var text:String
     var date:Int
-    var imageURL:String
-    var image:UIImage?
+    var imageView = UIImageView()
     
-    init(_ text:String, _ date:Int, _ imageURL:String) {
+    init(_ text:String, _ date:Int) {
         self.text = text
         self.date = date
-        self.imageURL = imageURL
     }
 }

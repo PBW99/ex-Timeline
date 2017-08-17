@@ -19,10 +19,12 @@ class UploadViewController: UIViewController, UITextViewDelegate {
     let placeHolder = "하고 싶은 말이 있나요?"
     
     var ref: DatabaseReference?
-    
+    var storageRef:StorageReference?
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        ref = Database.database().reference()
+        ref = Database.database().reference()   //Firebase Database 루트를 가리키는 레퍼런스
+        storageRef = Storage.storage().reference()  ////Firebase Storage 루트를 가리키는 레퍼런스
         
         self.TextView.delegate = self
         textViewDidEndEditing(TextView)
@@ -70,7 +72,6 @@ class UploadViewController: UIViewController, UITextViewDelegate {
     }
     override func viewWillDisappear(_ animated: Bool) {
         self.navigationController?.isNavigationBarHidden = true
-
     }
     @objc func uploadPost(){
         var curRef = self.ref?.child("posts").childByAutoId()
@@ -80,31 +81,25 @@ class UploadViewController: UIViewController, UITextViewDelegate {
             curRef?.child("text").setValue("")
         }
         
+        self.TextView.text = ""
+        textViewDidEndEditing(TextView)
+        
         let date = Date()
         let IntValueOfDate = Int(date.timeIntervalSince1970)
         curRef?.child("date").setValue("\(IntValueOfDate)")
         
-        var storageRef:StorageReference
-        
-        storageRef = Storage.storage().reference().child((curRef?.key)!+".jpg")
+        let imageRef = storageRef?.child((curRef?.key)!+".jpg")
         
         guard var uploadData = UIImageJPEGRepresentation(self.image, 0.1) else{
-            guard var uploadData = UIImagePNGRepresentation(self.image) else{
-                return
-            }
             return
         }
-        storageRef.putData(uploadData, metadata: nil, completion:{ metadata, error in
+        imageRef?.putData(uploadData, metadata: nil, completion:{ metadata, error in
             if let error = error {
                 // 에러 발생
             } else {
                 // Metadata는 size, content-type, download URL과 같은 컨텐트의 메타데이터를 가진다
-                if let downloadURL = metadata!.downloadURL(){
-                    curRef?.child("imageURL").setValue("\(downloadURL)")
-                }
             }
         })
         self.tabBarController?.selectedIndex = 0
     }
-    
 }

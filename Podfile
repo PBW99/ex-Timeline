@@ -7,9 +7,9 @@ target 'Timeline' do
 
   # Pods for Timeline
   pod 'Firebase/Core'
+  pod 'Firebase/Auth'
   pod 'Firebase/Database'
   pod 'Firebase/Storage'
   pod 'FirebaseUI/Storage'
-  pod 'Firebase/Auth'
   pod 'Fusuma'
 end

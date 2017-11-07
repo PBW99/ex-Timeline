@@ -110,9 +110,9 @@ class TimelineTableViewController: UITableViewController {
                     post.imageView.sd_setImage(with: imageRef!, placeholderImage: UIImage())
                     
                     freshPostsChunk += [post]
-                    if freshPostsChunk.count >= g_NumPerOneLoad{
-                        break
-                    }
+                    
+                    
+                    
                 }
             }
             self.loadedPosts.insert(contentsOf: freshPostsChunk, at: 0)

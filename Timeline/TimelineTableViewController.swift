@@ -73,7 +73,7 @@ class TimelineTableViewController: UITableViewController {
                     
                     //Get Image
                     let imageRef = self.storageRef?.child("\(snapshotDatum.key).jpg")
-                    post.imageView.sd_setImage(with: imageRef!, placeholderImage: UIImage())
+                    post.imageView.sd_setImage(with: imageRef!, placeholderImage: UIImage(), completion:{(image,error,cacheType,imageURL) in self.tableView.reloadData() })
                     
                     self.loadedPosts += [post]
                 }
